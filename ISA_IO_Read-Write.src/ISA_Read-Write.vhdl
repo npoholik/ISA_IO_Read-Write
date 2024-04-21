@@ -66,10 +66,10 @@ begin
 	--CHRDY <= 'Z';
 	MEM16 <= 'Z';
 	--IO16 <= 'Z';
-	SD <= "ZZZZZZZZZZZZZZZZ";
+	--SD <= "ZZZZZZZZZZZZZZZZ";
     
     -- Check if IOWC is asserted, and if the address is set to desired 0x03000 
-    -- If these are true, the counter will be transmitted
+    -- If these are true, read/write will occur and necessary signals will be asserted (CHRDY, IO16)
     ISABus: process(SA, SD, IORC, IOWC)
     begin 
         if IOWC = '0' and SA = x"03000" then
@@ -80,9 +80,11 @@ begin
             CHRDY <= '1';
             IO16 <= '0';
             -- implementation here
+            SD <= data;
         else 
             CHRDY <= 'Z';
             IO16 <= 'Z';
+            SD <= "ZZZZZZZZZZZZZZZZ";
             -- other signals as more implementation is added
         end if;
     end process;
