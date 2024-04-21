@@ -43,7 +43,6 @@ entity userDesign is
               adcWrite : out std_logic;
               adcINT : in std_logic;
               valid : buffer std_logic;
-              read : in std_logic;          -- From C Program
               data : out std_logic_vector(7 downto 0));
 
 end userDesign;
@@ -57,6 +56,8 @@ architecture Behavioral of userDesign is
     signal genClk: STD_LOGIC;                                               --
     signal latchData: STD_LOGIC;                                            --
     signal clkDiv : STD_LOGIC_VECTOR(15 downto 0) := "0000000000000001";    --
+
+    signal readC : std_logic;  -- From C Program
 
     signal valid_prev : std_logic;
     signal valid_change : std_logic;
@@ -140,5 +141,6 @@ begin
                 end if;
         end if;
     end process;   
+
 ---*** End Architecture 
 end Behavioral;
