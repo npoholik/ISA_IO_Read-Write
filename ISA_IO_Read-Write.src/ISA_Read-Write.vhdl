@@ -37,7 +37,15 @@ entity userDesign is
 			  IO16 : out std_logic;                                             -- IO16 
 			  MEM16 : out std_logic;                                            -- MEM16 
 			  CHRDY: out std_logic;                                             -- BUS Control 
-			  countOut : buffer STD_LOGIC_VECTOR(7 downto 0) := "00000000");    --
+			  countOut : buffer STD_LOGIC_VECTOR(7 downto 0) := "00000000";    --
+              -- ADC
+              adcData : in std_logic_vector(7 downto 0);
+              adcWrite : out std_logic;
+              adcINT : in std_logic;
+              valid : buffer std_logic;
+              read : in std_logic;          -- From C Program
+              data : out std_logic_vector(7 downto 0));
+
 end userDesign;
 
 ----------------------------------------------------------------------------------
@@ -49,23 +57,72 @@ architecture Behavioral of userDesign is
     signal genClk: STD_LOGIC;                                               --
     signal latchData: STD_LOGIC;                                            --
     signal clkDiv : STD_LOGIC_VECTOR(15 downto 0) := "0000000000000001";    --
+
+    signal valid_prev : std_logic;
+    signal valid_change : std_logic;
 -- ***Architecture Begin*** --
 begin
     -- Following signals are not yet utilized, but are important for ISA spec and will be included in further iterations
-	CHRDY <= 'Z';
+	--CHRDY <= 'Z';
 	MEM16 <= 'Z';
-	IO16 <= 'Z';
+	--IO16 <= 'Z';
 	SD <= "ZZZZZZZZZZZZZZZZ";
     
     -- Check if IOWC is asserted, and if the address is set to desired 0x03000 
     -- If these are true, the counter will be transmitted
     ISABus: process(SA, SD, IORC, IOWC)
     begin 
-        if IOWC = '1' and SA = x"03000" then
+        if IOWC = '0' and SA = x"03000" then
+            CHRDY <= '1';
+            IO16 <= '0';
             clkDiv <= SD;
+        elsif IORC = '0' and SA = x"03000" then
+            CHRDY <= '1';
+            IO16 <= '0';
+            -- implementation here
+        else 
+            CHRDY <= 'Z';
+            IO16 <= 'Z';
+            -- other signals as more implementation is added
         end if;
     end process;
     
+    -- Create reg to hold status of valid, based on INT of adc and signal from C program
+    status: process(countOut) 
+    begin
+        if rising_edge(countOut(0)) then
+            valid <= adcINT; -- Fix later (not what we're trying to do exactly)
+        end if;
+    end process;
+
+    -- Detect non-clock edges of valid to determine if a new sample is ready
+    Valid_Detector: process(countOut) 
+    begin
+        if rising_edge(countOut(0)) then
+            valid_prev <= valid;
+
+            if valid_prev = '1' and valid = '0' then
+                valid_change <= '1';
+            end if;
+        end if;
+    end process;
+
+    -- Hardware Polling of ADC to Trigger a new Conversion and Transfer
+    ADC_Poll: process(countOut) 
+    begin
+        if rising_edge(countOut(0)) then
+            -- Check if INT is asserted, if so write data to reg and start new conversion
+            if valid_change = '1' then
+                data <= adcData;
+                adcWrite <= '0';
+                -- Check if the C program has read the data out
+                if read = '1' then
+                    valid <= '1';
+                end if;
+            end if;
+        end if;
+    end process;
+
     -- Create a counter capable of being variably divided by an input signal 
 	Counter: process(clk_50) 
         variable divCounter : integer range 0 to 65535 := 0;
