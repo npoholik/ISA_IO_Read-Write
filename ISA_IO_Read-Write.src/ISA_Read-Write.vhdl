@@ -65,7 +65,7 @@ architecture Behavioral of userDesign is
 begin
     -- Following signals are not yet utilized, but are important for ISA spec and will be included in further iterations
 	--CHRDY <= 'Z';
-	MEM16 <= 'Z';
+	--MEM16 <= 'Z';
 	--IO16 <= 'Z';
 	--SD <= "ZZZZZZZZZZZZZZZZ";
     
@@ -76,15 +76,18 @@ begin
         if IOWC = '0' and SA = x"03000" then
             CHRDY <= '1';
             IO16 <= '0';
+            MEM16 <= 'Z';
             clkDiv <= SD;
         elsif IORC = '0' and SA = x"03000" then
             CHRDY <= '1';
-            IO16 <= '0';
+            MEM16 <= '0';
+            IO16 <= 'Z';
             -- implementation here
             SD <= data;
         else 
             CHRDY <= 'Z';
             IO16 <= 'Z';
+            MEM16 <= 'Z';
             SD <= "ZZZZZZZZZZZZZZZZ";
             -- other signals as more implementation is added
         end if;
