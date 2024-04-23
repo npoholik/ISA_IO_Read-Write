@@ -43,7 +43,7 @@ entity userDesign is
               adcWrite : out std_logic;
               adcINT : in std_logic;
               valid : buffer std_logic;
-              data : out std_logic_vector(7 downto 0));
+              procData : out std_logic_vector(7 downto 0));
 
 end userDesign;
 
@@ -69,27 +69,24 @@ begin
 	--IO16 <= 'Z';
 	--SD <= "ZZZZZZZZZZZZZZZZ";
     
-    -- Check if IOWC is asserted, and if the address is set to desired 0x03000 
-    -- If these are true, read/write will occur and necessary signals will be asserted (CHRDY, IO16)
+    -- Signals to inform bus control logic about the transfer to take place
     ISABus: process(SA, SD, IORC, IOWC)
     begin 
-        if IOWC = '0' and SA = x"03000" then
+        if IOWC = '0' and SA = x"03000" then -- We will be performing an IO 16 bit write to the card
             CHRDY <= '1';
             IO16 <= '0';
             MEM16 <= 'Z';
             clkDiv <= SD;
-        elsif IORC = '0' and SA = x"03000" then
+        elsif IORC = '0' and SA = x"03000" then -- we will be performing an IO 8 bit read from the card 
             CHRDY <= '1';
-            MEM16 <= '0';
-            IO16 <= 'Z';
-            -- implementation here
-            SD <= data;
+            IO16 <= '1'; -- ADC data will be 8 bits, so IO16 will not be asserted
+            MEM16 <= 'Z';
+            SD <= procData;
         else 
             CHRDY <= 'Z';
             IO16 <= 'Z';
             MEM16 <= 'Z';
             SD <= "ZZZZZZZZZZZZZZZZ";
-            -- other signals as more implementation is added
         end if;
     end process;
     
