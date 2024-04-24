@@ -19,7 +19,6 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
---use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 USE ieee.numeric_std.ALL;
 
@@ -29,49 +28,45 @@ entity userDesign is
     Port ( bclk : in  STD_LOGIC;
 			  clk_50 : in std_logic;                                            -- Master clock of board
 			  --LA: in std_logic_vector(23 downto 17);                          -- Latch address, exists in ISA spec but is unused for this particular design
-			  SA: in std_logic_vector(19 downto 0);                             -- 
-			  SD: inout std_logic_vector(15 downto 0);                          --
-			  IOWC: in std_logic;                                               -- IO Write, asserted in order to
-			  IORC: in std_logic;                                               -- IO read, asserted in order to 
-			  IO16 : out std_logic;                                             -- IO16 
-			  MEM16 : out std_logic;                                            -- MEM16 
-			  CHRDY: out std_logic;                                             -- BUS Control 
-			  countOut : buffer STD_LOGIC_VECTOR(7 downto 0) := "00000000";    --
-              -- ADC
-              adcData : in std_logic_vector(7 downto 0) := x"00";
-              adcWrite : out std_logic;
-              adcINT : in std_logic := '0';
-              valid : buffer std_logic);
+			  SA: in std_logic_vector(19 downto 0);                             -- Address received from processor, determines if our card is being talked to
+			  SD: inout std_logic_vector(15 downto 0);                          -- Data to/from processor depending on read/write
+			  IOWC: in std_logic;                                               -- IO Write, asserted in order for the processor to write to the card
+			  IORC: in std_logic;                                               -- IO read, asserted in order for the processor to read from the card
+			  IO16 : out std_logic;                                             -- IO16 asserted alerts the bus that a 16 bit IO transfer will take place (not asserted -> 8 bits)
+			  MEM16 : out std_logic;                                            -- MEM16 asserted alerts the bus that a 16 bit memory transfer will take place (not asserted -> 8 bits)
+			  CHRDY: out std_logic;                                             -- CHRDY asserted will tell the steering logic to move onto the next transaction without wait states 
 
+			  countOut : buffer STD_LOGIC_VECTOR(7 downto 0) := "00000000";     -- A counter with adjustable frequency from the processor that will influence A/D conversion rate 
+
+              adcData : in std_logic_vector(7 downto 0) := x"00";               -- Data received from a conversion of the ADC chip
+              adcWrite : out std_logic;                                         -- Signal to the ADC chip to initialize a new conversion
+              adcINT : in std_logic := '0');                                    -- Interrupt signal to indicate a conversion has finished
 end userDesign;
 
 ----------------------------------------------------------------------------------
--- ***Architecture Begin*** --
 
 architecture Behavioral of userDesign is
--- ***Signal Declaration*** --
-    signal count: integer range 1 to 32767 := 1;                            -- 
-    signal genClk: STD_LOGIC;                                               --
-    signal latchData: STD_LOGIC;                                        --
-    signal clkDiv : STD_LOGIC_VECTOR(15 downto 0) := "0000000000000000";    --
-    signal procData : std_logic_vector(15 downto 0);
+    -- ***Signal Declaration*** --
+    ------------------------------------------------------------------------------
+    -- ISA Write Specific:
+    signal clkDiv : STD_LOGIC_VECTOR(15 downto 0) := "0000000000000000";    -- 16 bit max divisor for the clk_50 
 
-    --signal readC : std_logic;  -- From C Program
+    -- ISA Read Specific:
+    signal valid : STD_LOGIC;                                               -- A status bit to determine if new ADC data is ready
+    signal latchData: STD_LOGIC;                                            -- A latch to indicate when new data is to be loaded from ADC
+    signal procData : std_logic_vector(15 downto 0);                        -- Routes data from latch to the ISA Bus
 
-    signal valid_prev : std_logic;
-    signal valid_change : std_logic;
-    
+    ------------------------------------------------------------------------------
 -- ***Architecture Begin*** --
+----------------------------------------------------------------------------------
 begin
-    -- Following signals are not yet utilized, but are important for ISA spec and will be included in further iterations
-	--CHRDY <= 'Z';
-	--MEM16 <= 'Z';
-	--IO16 <= 'Z';
-	--SD <= "ZZZZZZZZZZZZZZZZ";
-    
+
+    adcWrite <= countOut(0); -- Begin conversions in the ADC with countOut(0) 
+
     -- Signals to inform bus control logic about the transfer to take place
     ISABus: process(SA, SD, IORC, IOWC)
     begin 
+        -- Check if the card is being talked to, whether in regards to an IO read or write 
         if IOWC = '0' and SA = x"03000" then -- We will be performing an IO 16 bit write to the card
             CHRDY <= '1';
             IO16 <= '0';
@@ -88,11 +83,11 @@ begin
             CHRDY <= '1';
             IO16 <= '1'; -- ADC data will be 8 bits, so IO16 will not be asserted
             MEM16 <= 'Z';
-            SD <= latchData;
+            SD <= procData;
         end if;
     end process;
 
-    
+    -- Create a Status Register to hold whether or not there is valid data from the ADC; this bit is cleared from a read from the processor
     SREG: process(adcINT, SA, SD, IORC, IOWC) 
     begin
         if adcINT = '1' then
@@ -101,9 +96,9 @@ begin
             valid <= '0';
         end if;
     end process;
-
-    adcWrite <= countOut(0); -- Begin reads with countOut(0)
     
+    -- Create a process to latch data from the ADC to procData (which goes to SD on the bus)
+    -- This exists to avoid any irregularities with data writing over itself if ADC data outpaces the bus
     Latch: process(countOut(0))
     begin
         if countOut(0) = '1' and valid = '1' then
@@ -131,8 +126,23 @@ begin
         end if;
     end process;  
 
+
+
 --*** DELETE OR FIX***---
 ------------------------------------------------------------------------------------------------------------------------
+--    signal count: integer range 1 to 32767 := 1;                            -- 
+--    signal genClk: STD_LOGIC;                                               --
+--    --signal readC : std_logic;  -- From C Program
+
+--signal valid_prev : std_logic;
+--signal valid_change : std_logic;
+    -- Following signals are not yet utilized, but are important for ISA spec and will be included in further iterations
+	--CHRDY <= 'Z';
+	--MEM16 <= 'Z';
+	--IO16 <= 'Z';
+	--SD <= "ZZZZZZZZZZZZZZZZ";
+
+
     -- Create reg to hold status of valid, based on INT of adc and signal from C program
   --  status: process(countOut) 
  --   begin
