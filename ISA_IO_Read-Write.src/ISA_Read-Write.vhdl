@@ -107,6 +107,7 @@ begin
 
         if latchData <= '1' then
             procData <= adcData & x"00"; -- little endian 
+            latchData <= '0';
     end process;
     
 

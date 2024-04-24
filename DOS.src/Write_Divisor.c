@@ -22,7 +22,6 @@ int round(double num) {
     return ret;
 }
 
-
 int main() {
     double mainFreq = 50000000;         // Trying to divide down a 50 MHz master clock frequency of the board
     printf("What's your desired frequency\n");
