@@ -52,10 +52,10 @@ architecture Behavioral of userDesign is
 -- ***Signal Declaration*** --
     signal count: integer range 1 to 32767 := 1;                            -- 
     signal genClk: STD_LOGIC;                                               --
-    signal latchData: STD_LOGIC_VECTOR(15 downto 0);                                            --
+    signal latchData: STD_LOGIC;                                        --
     signal clkDiv : STD_LOGIC_VECTOR(15 downto 0) := "0000000000000000";    --
+    signal procData : std_logic_vector(15 downto 0);
 
-    --signal procData : std_logic_vector(7 downto 0);
     --signal readC : std_logic;  -- From C Program
 
     signal valid_prev : std_logic;
@@ -70,7 +70,6 @@ begin
 	--SD <= "ZZZZZZZZZZZZZZZZ";
     
     -- Signals to inform bus control logic about the transfer to take place
-    -- HOoRAY
     ISABus: process(SA, SD, IORC, IOWC)
     begin 
         if IOWC = '0' and SA = x"03000" then -- We will be performing an IO 16 bit write to the card
@@ -108,10 +107,32 @@ begin
     Latch: process(countOut(0))
     begin
         if countOut(0) = '1' and valid = '1' then
-            latchData <= adcData & x"00";
+            latchData <= '1';
         end if;
+
+        if latchData <= '1' then
+            procData <= adcData & x"00"; -- little endian 
     end process;
     
+
+    -- Create a counter capable of being variably divided by an input signal 
+	Counter: process(clk_50) 
+        variable divCounter : integer range 0 to 65535 := 0;
+    begin
+        if clkDiv = "0000000000000000" then                            -- Special Case when Divisor = 0; must shift 50 MHz clock into countOut or else 50 MHz counter is unachievable (closest will be 25 MHz as there will always be a divisor of 1 for counter)
+              countOut <= countOut(6 downto 0) & clk_50;
+        elsif rising_edge(clk_50) then
+                if divCounter >= to_integer(unsigned(clkDiv)) - 1 then   -- Use one less than the given clkDiv signal to ensure that the hardware will have easy to understand divisions (1 = 25 MHz, 2 = 12.5 MHz ONLY if clkDiv -1 is used)
+                    divCounter := 0;
+                    countOut <= std_logic_vector(unsigned(countOut)+1);
+                else 
+                    divCounter := divCounter + 1;
+                end if;
+        end if;
+    end process;  
+
+--*** DELETE OR FIX***---
+------------------------------------------------------------------------------------------------------------------------
     -- Create reg to hold status of valid, based on INT of adc and signal from C program
   --  status: process(countOut) 
  --   begin
@@ -143,22 +164,7 @@ begin
 --                end if;
 --            end if;
 --    end process;
-
-    -- Create a counter capable of being variably divided by an input signal 
-	Counter: process(clk_50) 
-        variable divCounter : integer range 0 to 65535 := 0;
-    begin
-        if clkDiv = "0000000000000000" then                            -- Special Case when Divisor = 0; must shift 50 MHz clock into countOut or else 50 MHz counter is unachievable (closest will be 25 MHz as there will always be a divisor of 1 for counter)
-              countOut <= countOut(6 downto 0) & clk_50;
-        elsif rising_edge(clk_50) then
-                if divCounter >= to_integer(unsigned(clkDiv)) - 1 then   -- Use one less than the given clkDiv signal to ensure that the hardware will have easy to understand divisions (1 = 25 MHz, 2 = 12.5 MHz ONLY if clkDiv -1 is used)
-                    divCounter := 0;
-                    countOut <= std_logic_vector(unsigned(countOut)+1);
-                else 
-                    divCounter := divCounter + 1;
-                end if;
-        end if;
-    end process;  
+------------------------------------------------------------------------------------------------------------------------
 
 ---*** End Architecture 
 end Behavioral;
