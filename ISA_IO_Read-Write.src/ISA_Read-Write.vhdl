@@ -99,7 +99,7 @@ begin
     
     -- Create a process to latch data from the ADC to procData (which goes to SD on the bus)
     -- This exists to avoid any irregularities with data writing over itself if ADC data outpaces the bus
-    Latch: process(countOut(0))
+    Latch: process(countOut(0), valid)
     begin
         if countOut(0) = '1' and valid = '1' then
             latchData <= '1';
