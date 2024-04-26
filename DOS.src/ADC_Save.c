@@ -22,6 +22,7 @@ int main() {
         printf("Error when accessing text file for ADC Data");
         return -4;
     }
+    
     while(1) {
         // Read data from the ISA bus
 
