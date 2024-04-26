@@ -28,7 +28,7 @@ int main() {
 
     double desiredFreq = 0;
     scanf("%lf", &desiredFreq);
-    unsigned short divisor;
+    unsigned short divisor; 
 
     // Due to the nature of the hardware design, some edge cases must be considered
     // The hardware design allows the lowest possible frequency to be ~382 Hz. Any value beyond will result in a an overflow and incorrect divisor

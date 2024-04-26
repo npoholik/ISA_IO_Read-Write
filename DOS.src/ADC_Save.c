@@ -11,8 +11,8 @@
 #include <conio.h>
 
 int main() {
-    unsigned short adcData;
-    unsigned long long count = 1;
+    unsigned char adcData;
+    unsigned long count = 1;
     char *fileName = "ADC_Data.txt";
 
     // Open text file for writes
