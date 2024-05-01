@@ -6,10 +6,10 @@
 ## General Outline
 For this project, there will be two components. 
 1. ISA Write
-    Allow the processor to set a programmable frequency by sending a calculated divisor value across the bus
+    >Allow the processor to set a programmable frequency by sending a calculated divisor value across the bus
 
 2. ISA Read
-    Read data from an Analog to Digital Converter into the card that the processor can request and read into its program
+    >Read data from an Analog to Digital Converter into the card that the processor can request and read into its program
 ---------------------------------------------------------------------------
 ## References/Data Sheets
 
