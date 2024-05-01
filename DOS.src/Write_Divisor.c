@@ -35,6 +35,7 @@ int main() {
     if (desiredFreq <= 382) {
         divisor = 65535;             // 65535 = 2^16-1; This is the maximum size in decimal that can be stored by the hardware for a divisor
     }
+    
     // The second edge case is if the user wants a clock the same or higher than the maximum master clock
     // This simply results in a divisor of 0, as the highest achievable clock is already present
     // 0 Case is mostly handled on the hardware level
