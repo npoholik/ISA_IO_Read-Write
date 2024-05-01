@@ -1,2 +1,10 @@
 # ISA_IO_Read-Write
-This project was completed for ECE 3215- Computer Systems Design course at Saint Louis University.
+
+>Utilize an ISA bus to faciliate both reads and writes between a programmable card and a processor
+
+---------------------------------------------------------------------------
+
+
+
+
+

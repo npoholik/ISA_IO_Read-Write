@@ -78,6 +78,14 @@ begin
             MEM16 <= 'Z';
             SD <= "ZZZZZZZZZZZZZZZZ";
         end if;
+
+        -- Transfer status bit to the processor so it can poll for data ready
+        if IORC = '0' and SA = x"03004" then -- we will be performing an IO 8 bit read from the card 
+            CHRDY <= '1';
+            IO16 <= '1'; -- ADC data will be 8 bits, so IO16 will not be asserted
+            MEM16 <= 'Z';
+            SD <= "000000000000000" & valid;
+        end if;
         
         if IORC = '0' and SA = x"03000" then -- we will be performing an IO 8 bit read from the card 
             CHRDY <= '1';
@@ -108,6 +116,7 @@ begin
         if latchData <= '1' then
             procData <= adcData & x"00"; -- little endian 
             latchData <= '0';
+        end if;
     end process;
     
 

@@ -117,3 +117,32 @@ NET "countOut[1]" IOSTANDARD = LVCMOS33;
 NET "countOut[0]" IOSTANDARD = LVCMOS33;
 
 # PlanAhead Generated physical constraints 
+
+# *** ADDITION: IO Read ADC Signals (to communicate with ADC chip outside of the board)
+//IO[17]
+NET "adcWrite" LOC = G16;
+
+//IO[16]
+NET "acdInt" LOC = G15;
+
+//IO[8:15]
+NET "adcData[7]" LOC = F17;
+NET "adcData[6]" LOC = G18;
+NET "adcData[5]" LOC = E15;
+NET "adcData[4]" LOC = F15;
+NET "adcData[3]" LOC = E18;
+NET "adcData[2]" LOC = E17;
+NET "adcData[1]" LOC = E16;
+NET "adcData[0]" LOC = D16;
+
+NET "adcWrite" IOSTANDARD = LVCMOS33;
+NET "acdInt" IOSTANDARD = LVCMOS33;
+NET "adcData[7]" IOSTANDARD = LVCMOS33;
+NET "adcData[6]" IOSTANDARD = LVCMOS33;
+NET "adcData[5]" IOSTANDARD = LVCMOS33;
+NET "adcData[4]" IOSTANDARD = LVCMOS33;
+NET "adcData[3]" IOSTANDARD = LVCMOS33;
+NET "adcData[2]" IOSTANDARD = LVCMOS33;
+NET "adcData[1]" IOSTANDARD = LVCMOS33;
+NET "adcData[0]" IOSTANDARD = LVCMOS33;
+

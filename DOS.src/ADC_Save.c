@@ -3,7 +3,7 @@
 // 
 // Create Date:    13:36:11 03/25/2024
 // Description:    Set up hardware to perform ISA reads, where the ISA takes ADC 8 bit data and have the processor
-//                 transfer this data into a text file 
+//                 transfer this data into some quick medium
 //
 //----------------------------------------------------------------------------------
 
@@ -13,28 +13,21 @@
 int main() {
     unsigned char adcData;
     unsigned long count = 1;
-    char *fileName = "ADC_Data.txt";
-
-    // Open text file for writes
-    FILE *fp = fopen(fileName, "w");
-    // Check for a valid text file opening, terminate program if it cannot be found
-    if (fp == NULL) {
-        printf("Error when accessing text file for ADC Data");
-        return -4;
-    }
     
-    while(1) {
-        // Read data from the ISA bus
-
-        // Increment data count
-
-
-        // Maybe look for discrepancies?
-
-        //Write data into text file (printing to console will be too slow and cause the transfer to slow significantly)
-        fprintf(fp, "Data read %lu: %hu\n", count, adcData);
+    unsigned short i = 0;
+    while(i < 1000) {
+        // Poll from card to determine if data is ready
+        while(1) {
+            unsigned short status;
+            inpw(0x03004, status);
+            if (status = 1) {
+                break;
+            }
+        }
+        // Read new data
+        inpw(0x03000, adcData);
+        i++;
+        
     }
-    // If while loop breaks at any point close the text file and terminate the program
-    fclose(fp); 
     return 0;
 }
