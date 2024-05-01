@@ -27,7 +27,8 @@ int main() {
         // Read new data
         inpw(0x03000, adcData);
         i++;
-        
+
+        // Save data... somehwere
     }
     return 0;
 }
