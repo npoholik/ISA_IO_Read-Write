@@ -82,14 +82,14 @@ begin
         -- Transfer status bit to the processor so it can poll for data ready
         if IORC = '0' and SA = x"03004" then -- we will be performing an IO 8 bit read from the card 
             CHRDY <= '1';
-            IO16 <= '1'; -- ADC data will be 8 bits, so IO16 will not be asserted
+            IO16 <= '0'; 
             MEM16 <= 'Z';
             SD <= "000000000000000" & valid;
         end if;
         
         if IORC = '0' and SA = x"03000" then -- we will be performing an IO 8 bit read from the card 
             CHRDY <= '1';
-            IO16 <= '1'; -- ADC data will be 8 bits, so IO16 will not be asserted
+            IO16 <= '0';
             MEM16 <= 'Z';
             SD <= procData;
         end if;
